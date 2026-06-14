@@ -1,0 +1,8 @@
+# Das fertige Linux-Programm ignorieren
+turtle-mode
+
+# VS Code Einstellungen nicht hochladen
+.vscode/
+
+# Eventuelle temporäre Objektdateien vom Compiler
+*.o
