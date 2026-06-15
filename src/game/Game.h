@@ -24,18 +24,23 @@ private:
     RaycastEngine renderer;
     bool is3DMode;
 
-   sf::SoundBuffer bufferStartup;
+    
+    sf::SoundBuffer bufferStartup;
     sf::SoundBuffer bufferIdle;
     sf::SoundBuffer bufferGas2;
     sf::SoundBuffer bufferGas3;
     sf::SoundBuffer bufferGas4;
     sf::SoundBuffer bufferMax;
 
-   
     sf::Sound soundStartup;
     sf::Sound soundIdle;
     sf::Sound soundGas2;
     sf::Sound soundGas3;
     sf::Sound soundGas4;
     sf::Sound soundMax;
+
+    
+    sf::Font font;
+    sf::Text hudText;
+    bool gameWon = false;
 };

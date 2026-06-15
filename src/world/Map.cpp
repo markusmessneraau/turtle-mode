@@ -165,3 +165,9 @@ sf::Vector2f Map::getStartPosition() const {
     }
     return sf::Vector2f(100.0f, 100.0f); // Fallback
 }
+
+int Map::getRemainingKeys() const {
+    return std::count_if(grid.begin(), grid.end(), [](const Tile& t) {
+        return t.type == TileType::Key;
+    });
+}

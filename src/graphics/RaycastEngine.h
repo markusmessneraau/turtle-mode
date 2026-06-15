@@ -13,4 +13,6 @@ public:
 private:
     float screenWidth;
     float screenHeight;
+    sf::Texture tileset;
+    sf::Texture keyTexture;
 };
