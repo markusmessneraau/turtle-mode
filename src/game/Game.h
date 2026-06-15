@@ -2,19 +2,23 @@
 #include <SFML/Graphics.hpp>
 #include "../world/Map.h"
 #include "../entities/Drone.h"
+#include "../game/InputManager.h"
+#include "../graphics/RaycastEngine.h"
 
 class Game {
+public:
+    Game();
+    void run();
+
 private:
+    void processEvents();
+    void update();
+    void render();
+
     sf::RenderWindow window;
     Map gameMap;
     Drone myDrone;
-
-    // Die drei Säulen von der Game-Loop
-    void processEvents(); // Fenster schließen etc.
-    void update();        // Physik & Steuerung berechnen
-    void render();        // Alles neu zeichnen
-
-public:
-    Game();
-    void run();           // Startet das Spiel
+    InputManager inputManager;
+    RaycastEngine renderer;
+    bool is3DMode;
 };
