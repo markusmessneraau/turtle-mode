@@ -15,4 +15,5 @@ private:
     float screenHeight;
     sf::Texture tileset;
     sf::Texture keyTexture;
+    sf::Texture droneTexture;
 };

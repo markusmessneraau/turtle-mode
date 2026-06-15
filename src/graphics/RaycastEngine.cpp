@@ -7,7 +7,11 @@ RaycastEngine::RaycastEngine(unsigned int width, unsigned int height)
     : screenWidth(static_cast<float>(width)), screenHeight(static_cast<float>(height)) {
         if (!tileset.loadFromFile("sokoban_tilesheet.png")) {
             std::cerr << "Fehler: Konnte Tileset nicht laden!\n";
-            keyTexture.loadFromFile("key.png");
+           // keyTexture.loadFromFile("key.png");
+        }
+
+        if (!droneTexture.loadFromFile("drone.png")) {
+            std::cerr << "Fehler: Konnte drone.png nicht laden!\n";
         }
     }
 
@@ -172,19 +176,19 @@ void RaycastEngine::render2DMap(sf::RenderWindow& window, const Drone& drone, co
     if (scaleFactor < 0.5f) scaleFactor = 0.5f;
     if (scaleFactor > 2.5f) scaleFactor = 2.5f;
 
-    sf::CircleShape body(drone.getRadius());
-    body.setFillColor(sf::Color(255, 50, 50));
-    body.setOrigin(sf::Vector2f(drone.getRadius(), drone.getRadius()));
-    body.setPosition(drone.getPosition());
-    body.setScale(sf::Vector2f(scaleFactor, scaleFactor));
+    sf::Sprite droneSprite(droneTexture);
 
-    sf::RectangleShape frontPointer(sf::Vector2f(22.0f, 4.0f));
-    frontPointer.setFillColor(sf::Color::White);
-    frontPointer.setOrigin(sf::Vector2f(0.0f, 2.0f));
-    frontPointer.setPosition(drone.getPosition());
-    frontPointer.setRotation(sf::degrees(drone.getYaw()));
-    frontPointer.setScale(sf::Vector2f(scaleFactor, scaleFactor));
+    sf::FloatRect bounds = droneSprite.getLocalBounds();
+    droneSprite.setOrigin(sf::Vector2f(bounds.size.x / 2.0f, bounds.size.y / 2.0f));
 
-    window.draw(body);
-    window.draw(frontPointer);
+    // Position, Rotation und Zoom
+    droneSprite.setPosition(drone.getPosition());
+    droneSprite.setRotation(sf::degrees(drone.getYaw()));
+
+    float targetWidth = 30.0f;
+    float baseScale = targetWidth / bounds.size.x;
+
+    droneSprite.setScale(sf::Vector2f(baseScale * scaleFactor, baseScale * scaleFactor));
+
+    window.draw(droneSprite);
 }
