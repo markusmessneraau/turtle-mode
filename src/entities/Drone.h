@@ -1,31 +1,35 @@
 #pragma once
-#include <SFML/Graphics.hpp>
+#include <SFML/System/Vector2.hpp>
 #include "../world/Map.h"
+#include "../game/InputManager.h"
 
 class Drone {
+public:
+    Drone(float startX, float startY);
+    void update(const DroneControls& controls, const Map& gameMap);
+
+    // Getters für die Grafik-Engine 
+    sf::Vector2f getPosition() const { return position; }
+    float getAltitude() const { return altitude; }
+    float getYaw() const { return yawAngle; }
+    float getPitch() const { return pitchAngle; }
+    float getRoll() const { return rollAngle; }
+    float getRadius() const { return radius; }
+
 private:
     sf::Vector2f position;
     sf::Vector2f velocity;
-    
-    // Die 3 Acro-Achsen + Gas (Mode 2)
-    float yawAngle;           // Nase drehen (WASD: A/D)
-    float pitchAngle;         // Nase kippen (Pfeiltasten: Hoch/Runter)
-    float rollAngle;          // Seitlich kippen (Pfeiltasten: Links/Rechts)
-    float throttle;           // Motorschub (WASD: W/S)
-    bool isControllerConnected;
+    float altitude;
+    float verticalVelocity;
+    float yawAngle;
+    float pitchAngle;
+    float rollAngle;
+    float throttle;
 
-    // Physikalische Koeffizienten für echtes FPV-Feeling
-    const float thrustPower = 0.25f;    
-    const float drag = 0.985f;          
-    const float yawSpeed = 3.5f;        
-    const float pitchSpeed = 2.0f;      
-    const float rollSpeed = 2.0f;       // Wie schnell sich die Drohne zur Seite rollt
-    const float radius = 12.0f;         
-
-public:
-    Drone(float startX, float startY);
     
-    void handleInput();
-    void update(const Map& gameMap);
-    void draw(sf::RenderWindow& window);
+    const float radius = 8.0f;
+    const float thrustPower = 0.5f;
+    const float gravity = 0.15f;
+    const float drag = 0.98f;
+    const float verticalDrag = 0.95f;
 };
