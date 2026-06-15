@@ -37,9 +37,30 @@ void Game::processEvents() {
 void Game::update() {
     DroneControls controls = inputManager.getControls();
     myDrone.update(controls, gameMap);
-    
+
     // Map die aktuelle Position der Drohne übergeben
     gameMap.collectItems(myDrone.getPosition().x, myDrone.getPosition().y);
+
+    if (gameMap.levelFinished) {
+        static int currentLevel = 1;
+        currentLevel++;
+        
+        // Baut Dateinamen zusammen
+        std::string nextLevelPath = "level" + std::to_string(currentLevel) + ".txt";
+        
+        // Versucht nächste Datei zu laden
+        if (gameMap.loadFromText(nextLevelPath)) {
+            std::cout << "Starte Level " << currentLevel << "!\n";
+            
+            // Setzt Drohne auf start im neuen Level
+            myDrone.setPosition(gameMap.getStartPosition()); 
+        } else {
+            std::cout << "\n====================================\n";
+            std::cout << "          ALLE LEVEL GESCHAFFT!       \n";
+            std::cout << "====================================\n\n";
+            std::exit(0);
+        }
+    }
 }
 
 void Game::render() {

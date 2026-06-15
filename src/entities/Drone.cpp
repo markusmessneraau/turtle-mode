@@ -80,3 +80,7 @@ void Drone::update(const DroneControls& controls, const Map& gameMap) {
     if (!wallY) position.y = nextPosY.y;
     else velocity.y = 0.0f;
 }
+
+void Drone::setPosition(sf::Vector2f newPos) {
+    position = newPos;
+}

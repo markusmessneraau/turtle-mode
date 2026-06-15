@@ -35,4 +35,8 @@ public:
     // prüft ob Drohne etwas berührt
     void collectItems(float pixelX, float pixelY);
     sf::Color getWallColor(float pixelX, float pixelY) const;
+
+    // Für Level-System und Startposition der Drohne
+    bool levelFinished = false;
+    sf::Vector2f getStartPosition() const;
 };

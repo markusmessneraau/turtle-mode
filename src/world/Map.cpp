@@ -2,6 +2,7 @@
 #include <fstream>  
 #include <iostream>
 #include <cstdlib>
+#include <algorithm>
 
 Map::Map() : width(0), height(0) {
     // wird erst beim Aufruf von loadFromText() initialisiert
@@ -16,6 +17,7 @@ int Map::getIndex(int x, int y) const {
 
 // Funktion zum Einlesen der Textdatei
 bool Map::loadFromText(const std::string& filepath) {
+    levelFinished = false;  // Reset von Level-Status beim Laden eines neuen Levels
     std::ifstream file(filepath);
     if (!file.is_open()) {
         std::cerr << "Fehler: Konnte " << filepath << " nicht oeffnen!\n";
@@ -26,7 +28,7 @@ bool Map::loadFromText(const std::string& filepath) {
     std::string line;
     width = 0;
     height = 0;
-    
+
     while (std::getline(file, line)) {
         if (width == 0) width = line.length(); // Breite anhand der ersten Zeile festlegen
         
@@ -93,14 +95,22 @@ void Map::collectItems(float pixelX, float pixelY) {
         // Liegt auf diesem Feld ein Schlüssel?
         if (grid[index].type == TileType::Key) {
             grid[index].type = TileType::Empty; // Schlüssel verschwindet
-            std::cout << "Schluessel eingesammelt! Tueren oeffnen sich...\n";
-            openDoors(); // Türen öffnen
+
+            // wie viel Schlüssel liegen noch rum? Wenn 0, dann Türen öffnen
+            int keysLeft = std::count_if(grid.begin(), grid.end(), [](const Tile& t) {
+                return t.type == TileType::Key;
+            });
+
+            if (keysLeft == 0) {
+                std::cout << "Alle Schluessel eingesammelt! Tueren oeffnen sich...\n";
+                openDoors(); 
+            } else {
+                std::cout << "Schluessel gefunden! Noch " << keysLeft << " uebrig...\n";
+            }
         }
         else if (grid[index].type == TileType::Exit) {
-            std::cout << "\n====================================\n";
-            std::cout << "           LEVEL GESCHAFFT!            \n";
-            std::cout << "====================================\n\n";
-            std::exit(0); 
+            std::cout << "Portal erreicht! Lade naechstes Level...\n";
+            levelFinished = true;
         }
     }
 }
@@ -142,4 +152,16 @@ bool Map::isVisualWall(float pixelX, float pixelY) const {
                 currentTile.type == TileType::Exit);
     }
     return true; 
+}
+
+sf::Vector2f Map::getStartPosition() const {
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            if (grid[getIndex(x, y)].type == TileType::Start) {
+                // Berechnet Pixel-Mitte des Starts
+                return sf::Vector2f(x * tileSize + tileSize / 2.0f, y * tileSize + tileSize / 2.0f);
+            }
+        }
+    }
+    return sf::Vector2f(100.0f, 100.0f); // Fallback
 }

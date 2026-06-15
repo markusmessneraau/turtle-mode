@@ -15,6 +15,7 @@ public:
     float getPitch() const { return pitchAngle; }
     float getRoll() const { return rollAngle; }
     float getRadius() const { return radius; }
+    void setPosition(sf::Vector2f newPos);
 
 private:
     sf::Vector2f position;
