@@ -21,4 +21,9 @@ private:
     InputManager inputManager;
     RaycastEngine renderer;
     bool is3DMode;
+
+    sf::Font font;
+    sf::Text hudText;
+
+    bool gameWon = false;
 };

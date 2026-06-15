@@ -39,4 +39,6 @@ public:
     // Für Level-System und Startposition der Drohne
     bool levelFinished = false;
     sf::Vector2f getStartPosition() const;
+
+    int getRemainingKeys() const;
 };

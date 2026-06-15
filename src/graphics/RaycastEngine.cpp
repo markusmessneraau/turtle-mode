@@ -7,6 +7,7 @@ RaycastEngine::RaycastEngine(unsigned int width, unsigned int height)
     : screenWidth(static_cast<float>(width)), screenHeight(static_cast<float>(height)) {
         if (!tileset.loadFromFile("sokoban_tilesheet.png")) {
             std::cerr << "Fehler: Konnte Tileset nicht laden!\n";
+            keyTexture.loadFromFile("key.png");
         }
     }
 
