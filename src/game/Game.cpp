@@ -1,4 +1,5 @@
 #include "Game.h"
+#include <iostream>
 
 Game::Game() 
     : window(sf::VideoMode(sf::Vector2u(800, 600)), "Turtle-Mode Simulator (Clean Code)"),
@@ -7,6 +8,9 @@ Game::Game()
       is3DMode(true) 
 {
     window.setFramerateLimit(60);
+    if (!gameMap.loadFromText("level1.txt")) {
+        std::cout << "Map konnte nicht geladen werden!" << std::endl;
+    }
 }
 
 void Game::run() {
@@ -33,6 +37,9 @@ void Game::processEvents() {
 void Game::update() {
     DroneControls controls = inputManager.getControls();
     myDrone.update(controls, gameMap);
+    
+    // Map die aktuelle Position der Drohne übergeben
+    gameMap.collectItems(myDrone.getPosition().x, myDrone.getPosition().y);
 }
 
 void Game::render() {

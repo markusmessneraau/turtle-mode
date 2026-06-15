@@ -49,7 +49,7 @@ void RaycastEngine::render3DFPV(sf::RenderWindow& window, const Drone& drone, co
             float testX = drone.getPosition().x + eyeX * distanceToWall;
             float testY = drone.getPosition().y + eyeY * distanceToWall;
 
-            if (gameMap.isWall(testX, testY)) {
+            if (gameMap.isVisualWall(testX, testY)) {
                 hitWall = true;
             }
         }
@@ -68,7 +68,19 @@ void RaycastEngine::render3DFPV(sf::RenderWindow& window, const Drone& drone, co
 
         sf::RectangleShape wallColumn(sf::Vector2f(columnWidth + 1.0f, wallHeight));
         wallColumn.setPosition(sf::Vector2f(i * columnWidth, wallTop));
-        wallColumn.setFillColor(sf::Color(shade, shade * 0.3f, shade * 0.3f)); 
+
+        float hitX = drone.getPosition().x + std::cos(rayAngleRad) * distanceToWall;
+        float hitY = drone.getPosition().y + std::sin(rayAngleRad) * distanceToWall;
+        sf::Color baseColor = gameMap.getWallColor(hitX, hitY);
+
+        float lightIntensity = shade / 255.0f;
+        wallColumn.setFillColor(sf::Color(
+            baseColor.r * lightIntensity,
+            baseColor.g * lightIntensity,
+            baseColor.b * lightIntensity
+        ));
+
+        //wallColumn.setFillColor(sf::Color(shade, shade * 0.3f, shade * 0.3f)); 
         window.draw(wallColumn);
     }
 
