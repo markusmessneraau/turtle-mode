@@ -1,9 +1,14 @@
 #include "RaycastEngine.h"
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 RaycastEngine::RaycastEngine(unsigned int width, unsigned int height) 
-    : screenWidth(static_cast<float>(width)), screenHeight(static_cast<float>(height)) {}
+    : screenWidth(static_cast<float>(width)), screenHeight(static_cast<float>(height)) {
+        if (!tileset.loadFromFile("sokoban_tilesheet.png")) {
+            std::cerr << "Fehler: Konnte Tileset nicht laden!\n";
+        }
+    }
 
 void RaycastEngine::render3DFPV(sf::RenderWindow& window, const Drone& drone, const Map& gameMap) {
     sf::View defaultView = window.getView(); 
@@ -26,32 +31,49 @@ void RaycastEngine::render3DFPV(sf::RenderWindow& window, const Drone& drone, co
     sf::RectangleShape sky(sf::Vector2f(screenWidth * 2.0f, screenHeight * 2.0f));
     sky.setOrigin(sf::Vector2f(screenWidth, screenHeight));
     sky.setPosition(sf::Vector2f(screenWidth / 2.0f, horizon));
-    sky.setFillColor(sf::Color(20, 20, 40)); 
+    sky.setFillColor(sf::Color(25, 25, 25)); 
     window.draw(sky);
 
     sf::RectangleShape floor(sf::Vector2f(screenWidth * 2.0f, screenHeight * 2.0f));
     floor.setOrigin(sf::Vector2f(screenWidth, 0.0f));
     floor.setPosition(sf::Vector2f(screenWidth / 2.0f, horizon));
-    floor.setFillColor(sf::Color(40, 70, 40)); 
+    floor.setFillColor(sf::Color(60, 20, 20));
     window.draw(floor);
 
     for (int i = 0; i < numRays; i++) {
         float rayAngleRad = droneYawRad + ((i - numRays / 2.0f) * (fov / numRays) * 3.14159265f / 180.0f);
         float distanceToWall = 0.0f;
-        bool hitWall = false;
+        bool hitSolidWall = false;
+
+        bool hitItem = false;
+        float itemDistance = 0.0f;
+        float itemHitX = 0.0f, itemHitY = 0.0f;
 
         float eyeX = std::cos(rayAngleRad);
         float eyeY = std::sin(rayAngleRad);
 
-        while (!hitWall && distanceToWall < maxDepth) {
-            distanceToWall += 6.0f; 
+        while (!hitSolidWall && distanceToWall < maxDepth) {
+            distanceToWall += 1.0f; 
 
             float testX = drone.getPosition().x + eyeX * distanceToWall;
             float testY = drone.getPosition().y + eyeY * distanceToWall;
 
-            if (gameMap.isVisualWall(testX, testY)) {
-                hitWall = true;
+            sf::Color currentColor = gameMap.getWallColor(testX, testY);
+
+            // Schlüssel? -> Merken, aber weiterfliegen
+            if (currentColor == sf::Color(255, 215, 0)) {
+                if (!hitItem) { 
+                    hitItem = true;
+                    itemDistance = distanceToWall;
+                    itemHitX = testX;
+                    itemHitY = testY;
+                }
             }
+
+            else if (gameMap.isVisualWall(testX, testY)) {
+                hitSolidWall = true;
+            }
+
         }
 
         float correctedDistance = distanceToWall * std::cos(rayAngleRad - droneYawRad);
@@ -61,27 +83,82 @@ void RaycastEngine::render3DFPV(sf::RenderWindow& window, const Drone& drone, co
         if (wallHeight > screenHeight * 2.0f) wallHeight = screenHeight * 2.0f;
 
         float wallTop = horizon - (wallHeight / 2.0f);
+    
 
-        float shade = 255.0f * (1.0f - (distanceToWall / maxDepth));
-        if (shade < 0) shade = 0;
-        if (shade > 255) shade = 255;
-
-        sf::RectangleShape wallColumn(sf::Vector2f(columnWidth + 1.0f, wallHeight));
-        wallColumn.setPosition(sf::Vector2f(i * columnWidth, wallTop));
-
+        // Trefferpunkt berechnen
         float hitX = drone.getPosition().x + std::cos(rayAngleRad) * distanceToWall;
         float hitY = drone.getPosition().y + std::sin(rayAngleRad) * distanceToWall;
-        sf::Color baseColor = gameMap.getWallColor(hitX, hitY);
 
+        //fragt Map nach ursprünglichen Farbe des Blocks
+        sf::Color blockColor = gameMap.getWallColor(hitX, hitY);
+
+        int kachelSpalte = 8; // Steinwand
+        int kachelZeile = 6;  
+
+
+       if (blockColor == sf::Color(50, 200, 50)) { 
+            kachelSpalte = 4; 
+            kachelZeile = 3; 
+        }
+
+        else if (blockColor == sf::Color(200, 50, 50)) {
+            kachelSpalte = 6; 
+            kachelZeile = 0;
+        }
+
+        int rawWallX = static_cast<int>(hitX + hitY);
+        int wallX = (rawWallX % 64 + 64) % 64;
+
+        
+        // aus Tileset ausschneiden
+        sf::IntRect textureRect(sf::Vector2i(kachelSpalte * 64 + wallX, kachelZeile * 64), sf::Vector2i(1, 64));
+        // Sprite erstellen, positionieren und skalieren
+        sf::Sprite wallSlice(tileset, textureRect);
+        wallSlice.setPosition(sf::Vector2f(static_cast<float>(i) * columnWidth, wallTop));
+        wallSlice.setScale(sf::Vector2f(columnWidth / 1.0f, wallHeight / 64.0f));
+
+        float shade = 255.0f * (1.0f - (distanceToWall / maxDepth));
+        if (shade < 0) shade = 0; if (shade > 255) shade = 255;
+
+        // schatten-Effekt berechnen 
         float lightIntensity = shade / 255.0f;
-        wallColumn.setFillColor(sf::Color(
-            baseColor.r * lightIntensity,
-            baseColor.g * lightIntensity,
-            baseColor.b * lightIntensity
-        ));
+        unsigned char intensityByte = static_cast<unsigned char>(255.0f * lightIntensity);
+        wallSlice.setColor(sf::Color(intensityByte, intensityByte, intensityByte));
 
-        //wallColumn.setFillColor(sf::Color(shade, shade * 0.3f, shade * 0.3f)); 
-        window.draw(wallColumn);
+        // Zeichnen
+        window.draw(wallSlice);
+
+
+        if (hitItem) {
+            // Entfernungs-Berechnung wie bei Wand, aber mit itemDistance
+            float correctedItemDist = itemDistance * std::cos(rayAngleRad - droneYawRad);
+            if (correctedItemDist < 1.0f) correctedItemDist = 1.0f;
+            
+            float itemHeight = (screenHeight * 15.0f) / correctedItemDist;
+            if (itemHeight > screenHeight * 2.0f) itemHeight = screenHeight * 2.0f;
+            float itemTop = horizon - (itemHeight / 2.0f);
+
+            int rawItemX = static_cast<int>(itemHitX + itemHitY);
+            int itemX = (rawItemX % 64 + 64) % 64; 
+
+        
+            sf::IntRect itemRect(sf::Vector2i(10 * 64 + itemX, 5 * 64), sf::Vector2i(1, 64));
+            sf::Sprite itemSlice(tileset, itemRect);
+            
+            itemSlice.setPosition(sf::Vector2f(static_cast<float>(i) * columnWidth, itemTop));
+            itemSlice.setScale(sf::Vector2f(columnWidth / 1.0f, itemHeight / 64.0f));
+
+            // Schatten auch auf das Item anwenden
+            float itemShade = 255.0f * (1.0f - (itemDistance / maxDepth));
+            if (itemShade < 0) itemShade = 0; if (itemShade > 255) itemShade = 255;
+            unsigned char itemIntensityByte = static_cast<unsigned char>(255.0f * (itemShade / 255.0f));
+            itemSlice.setColor(sf::Color(itemIntensityByte, itemIntensityByte, itemIntensityByte));
+
+            // Zeichnet Item über bereits gezeichnete Wand
+            window.draw(itemSlice);
+        }
+
+        
     }
 
     window.setView(defaultView);
