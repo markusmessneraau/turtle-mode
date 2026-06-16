@@ -11,8 +11,11 @@ public:
     void render2DMap(sf::RenderWindow& window, const Drone& drone, const Map& gameMap);
 
 private:
+    // Bildschirmauflösung
     float screenWidth;
     float screenHeight;
+
+    // Assets
     sf::Texture tileset;
     sf::Texture keyTexture;
     sf::Texture droneTexture;

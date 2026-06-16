@@ -7,7 +7,6 @@ RaycastEngine::RaycastEngine(unsigned int width, unsigned int height)
     : screenWidth(static_cast<float>(width)), screenHeight(static_cast<float>(height)) {
         if (!tileset.loadFromFile("sokoban_tilesheet.png")) {
             std::cerr << "Fehler: Konnte Tileset nicht laden!\n";
-           // keyTexture.loadFromFile("key.png");
         }
 
         if (!droneTexture.loadFromFile("drone.png")) {
@@ -16,17 +15,22 @@ RaycastEngine::RaycastEngine(unsigned int width, unsigned int height)
     }
 
 void RaycastEngine::render3DFPV(sf::RenderWindow& window, const Drone& drone, const Map& gameMap) {
+
+    // Kamera View holen
     sf::View defaultView = window.getView(); 
     sf::View fpvView = defaultView;
     
+    // Drohnen-Neigung auf View anwenden
     fpvView.setRotation(sf::degrees(drone.getRoll())); 
     fpvView.setSize(sf::Vector2f(defaultView.getSize().x * 0.82f, defaultView.getSize().y * 0.82f));
     window.setView(fpvView); 
 
-    int numRays = 1000;             
-    float fov = 60.0f;             
-    float maxDepth = 500.0f;       
-    float columnWidth = screenWidth / static_cast<float>(numRays);
+
+    // Raycasting-Parameter
+    int numRays = 1000;    // Anzahl der Strahlen, die wir abfeuern         
+    float fov = 60.0f;     // Sichtfeld in Grad  
+    float maxDepth = 500.0f;       // Maximale Sichtweite
+    float columnWidth = screenWidth / static_cast<float>(numRays); // Breite jedes Strahlen-Slices auf Bildschirm
 
     float droneYawRad = drone.getYaw() * 3.14159265f / 180.0f;
 
