@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "../entities/Drone.h"
 #include "../world/Map.h"
+#include "KeyRenderer.h"
 
 class RaycastEngine {
 public:
@@ -15,4 +16,5 @@ private:
     float screenHeight;
     sf::Texture tileset;
     sf::Texture keyTexture;
+     KeyRenderer keyRenderer;
 };
